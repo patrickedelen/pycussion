@@ -15,10 +15,20 @@ rgba(255, 255, 0, 1)
 """
 
 color_options = [
-    (1, 1, 1, 1),
-    (0, 206 / 256.0, 69 / 256.0, 1),
-    (255 / 256.0 , 255 / 256.0 , 0, 1),
-    (28 / 256.0 , 0, 208 / 256.0, 1),
+    (1, 1, 1, 1),  # white
+    (1, 0, 0, 1),  # red
+    (0, 1, 0, 1),  # green
+    (0, 0, 1, 1),  # blue
+    (1, 1, 0, 1),  # yellow
+    (0, 1, 1, 1),  # cyan
+    (1, 0, 1, 1),  # magenta
+    (0.5, 0.5, 0.5, 1),  # grey
+    (0.75, 0, 0.75, 1),  # purple
+    (0.5, 0.5, 0, 1),  # olive
+    (0, 0.5, 0.5, 1),  # teal
+    (0.5, 0, 0, 1),  # maroon
+    (0, 0.5, 0, 1),  # dark green
+    (0, 0, 0.5, 1),  # navy
 ]
 
 x, y, z = -1.2601932287216187, -7.956546783447266, -2.617464065551758
@@ -55,8 +65,8 @@ class AudioVisualizer(object):
             frames_per_buffer=self.CHUNK
         )
 
-        self.onset = aubio.onset("energy", 512, 512, self.RATE)
-        self.onset.set_threshold(.3)
+        self.onset = aubio.onset("specflux", 512, 512, self.RATE)
+        self.onset.set_threshold(.1)
         self.onset_count = 0
 
         self.inverted = False
@@ -109,7 +119,7 @@ class AudioVisualizer(object):
         print(f"Frame time: {end_time - start_time} seconds")
 
     def invert_colors(self):
-        if self.line_state < 2:
+        if self.line_state < len(color_options) - 1:
             self.line_state += 1
             self.line_color = color_options[self.line_state]
         else:
