@@ -1,5 +1,5 @@
 # pycussion
-python music visualizer app
+python music visualizer app, check out the video to see the demo
 
 # setup instructions
 you will need to download black holehere to create a loopback audio interface:
