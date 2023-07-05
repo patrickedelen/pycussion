@@ -1,11 +1,6 @@
 # pycussion
 python music visualizer app
 
-
-Uploading IMG_3889 2.mov…
-
-
-
 # setup instructions
 you will need to download black holehere to create a loopback audio interface:
 
