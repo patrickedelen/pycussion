@@ -8,13 +8,31 @@ pyaudio_format = pyaudio.paFloat32
 n_channels = 2
 samplerate = 32768
 
-# Create a PyAudio object
 p = pyaudio.PyAudio()
+
+# Loop through the number of available audio devices
+for i in range(p.get_device_count()):
+    # Get the device info
+    info = p.get_device_info_by_index(i)
+    # Check if this device supports input (i.e., can be used as a microphone)
+    print("Input Device id ", i, " - ", info["name"], " - ", info["maxOutputChannels"])
+
+info = p.get_device_info_by_index(3)
+
+print("Device name: ", info["name"])
+print("Device maxInputChannels: ", info["maxInputChannels"])
+
+
+# # # Clean up PyAudio
+# p.terminate()
+
+# Create a PyAudio object
+# p = pyaudio.PyAudio()
 
 # Create a stream
 stream = p.open(format=pyaudio_format,
-                channels=1,
                 rate=samplerate,
+                channels=2,
                 input=True,
                 input_device_index=3,
                 frames_per_buffer=buffer_size)
@@ -22,7 +40,7 @@ stream = p.open(format=pyaudio_format,
 # Create an aubio tempo detection object
 tempo = aubio.tempo("default", 2048, 1024, samplerate)
 onset = aubio.onset("energy", buffer_size, buffer_size, samplerate)
-onset.set_threshold(.7)
+onset.set_threshold(.01)
 
 tempo_count = 0
 

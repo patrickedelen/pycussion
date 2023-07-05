@@ -21,6 +21,8 @@ color_options = [
     (28 / 256.0 , 0, 208 / 256.0, 1),
 ]
 
+x, y, z = -1.2601932287216187, -7.956546783447266, -2.617464065551758
+
 
 class CustomGLViewWidget(gl.GLViewWidget):
     def keyPressEvent(self, event):
@@ -30,24 +32,31 @@ class CustomGLViewWidget(gl.GLViewWidget):
         else:
             super().keyPressEvent(event)
 
+    def mouseMoveEvent(self, ev):
+
+        pos = self.cameraPosition()
+        print(f"camera position: {pos}")
+
+        return super().mouseMoveEvent(ev)
+
 
 class AudioVisualizer(object):
     def __init__(self):
         # PyAudio Configuration
         self.RATE = 32768
-        self.CHUNK = 2048
+        self.CHUNK = 512
         self.p = pyaudio.PyAudio()
         self.stream = self.p.open(
             format=pyaudio.paFloat32,
             channels=1,
             rate=self.RATE,
             input=True,
-            input_device_index=4,
+            input_device_index=3,
             frames_per_buffer=self.CHUNK
         )
 
-        self.onset = aubio.onset("energy", 2048, 2048, self.RATE)
-        self.onset.set_threshold(.1)
+        self.onset = aubio.onset("energy", 512, 512, self.RATE)
+        self.onset.set_threshold(.3)
         self.onset_count = 0
 
         self.inverted = False
@@ -60,7 +69,8 @@ class AudioVisualizer(object):
         self.window = CustomGLViewWidget()
         self.window.setWindowTitle('Waveform')
         self.window.setGeometry(0, 110, 1920, 1080)
-        self.window.setCameraPosition(distance=30, elevation=8)
+        # self.window.opts['center'] = QtGui.QVector3D(x, y, z)
+        self.window.setCameraPosition(distance=5, elevation=90, azimuth=90)
         self.window.show()
 
         self.window.setBackgroundColor(self.bg_color)
@@ -76,7 +86,7 @@ class AudioVisualizer(object):
     def update(self):
         start_time = time.time()
 
-        wf_data = self.stream.read(2048)
+        wf_data = self.stream.read(self.CHUNK, exception_on_overflow=False)
         wf_data_onset = np.frombuffer(wf_data, dtype=np.float32)
         if self.onset(wf_data_onset):
             self.onset_count += 1
@@ -99,18 +109,21 @@ class AudioVisualizer(object):
         print(f"Frame time: {end_time - start_time} seconds")
 
     def invert_colors(self):
-        if self.line_state < 3:
+        if self.line_state < 2:
             self.line_state += 1
             self.line_color = color_options[self.line_state]
         else:
             self.line_state = 0
             self.line_color = color_options[self.line_state]
 
+        self.plot.color = self.line_color
+
     def animation(self):
         timer = QtCore.QTimer()
         timer.timeout.connect(self.update)
         timer.start(1)
         QtWidgets.QApplication.instance().exec()
+
 
 if __name__ == '__main__':
     vis = AudioVisualizer()
