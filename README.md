@@ -1,6 +1,3 @@
-# pycussion
-python music visualizer app, check out the video to see the demo
-
 # setup instructions
 you will need to download black holehere to create a loopback audio interface:
 
@@ -12,9 +9,24 @@ run the test script bh_test.py to figure out the blackhole interface you want to
 
 run waveform.py and check it out!
 
-# future visualizations / features
 
-- cube that rotates and scales with the beat
-- better waveform that animates background as well
-- live camera input with filters based on music energy level
+
+# to run
+- activate the pipenv with `pipenv install` and then `pipenv shell`
+- navigate to /structured_app and run `python app.py`
+- comment out the lighting controller if you don't have one setup properly, you will need an OpenDMX controller
+- need to add notes about dependencies for `pyftdi` for lighting control
+- if you want audio reactive visuals, you will need to install BlackHole for Mac or use an audio interface
+- run `/test_scripts/bh_test.py` to check audio interfaces available and set the index in the `audio_processing.py` file to the index of your interface
+
+
+## current features
+tbd
+
+## upcoming features
+- triangle background
+- colliding planes background
+- expanding particle cube
+- cube textures
+- make random movement cube smoother
 
