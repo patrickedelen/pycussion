@@ -1,0 +1,23 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+librosa = "*"
+numpy = "*"
+pygame = "*"
+pyaudio = "*"
+opensimplex = "*"
+pyopengl = "*"
+pyqtgraph = "*"
+pyqt6 = "*"
+aubio = "*"
+websockets = "*"
+scipy = "*"
+pydmxcontrol = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.11"

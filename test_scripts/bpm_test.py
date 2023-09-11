@@ -34,11 +34,11 @@ stream = p.open(format=pyaudio_format,
                 rate=samplerate,
                 channels=2,
                 input=True,
-                input_device_index=3,
+                input_device_index=5,
                 frames_per_buffer=buffer_size)
 
 # Create an aubio tempo detection object
-tempo = aubio.tempo("default", 2048, 1024, samplerate)
+tempo = aubio.tempo("default", 4096, 4096, samplerate)
 onset = aubio.onset("energy", buffer_size, buffer_size, samplerate)
 onset.set_threshold(.01)
 

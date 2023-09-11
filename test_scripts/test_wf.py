@@ -51,7 +51,7 @@ class AudioVisualizer(object):
             channels=1,
             rate=self.RATE,
             input=True,
-            input_device_index=3,
+            input_device_index=2,
             frames_per_buffer=self.CHUNK
         )
 

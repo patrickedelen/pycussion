@@ -13,7 +13,7 @@ for i in range(0, numdevices):
         print("Output Device id ", i, " - ", p.get_device_info_by_index(i).get('name'))
 
 
-# exit(0)
+exit(0)
 
 
 

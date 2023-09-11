@@ -33,9 +33,49 @@ rgba(255, 255, 0, 1)
 # ]
 color_options = [(random.random(), random.random(), random.random(), 1) for _ in range(100)]
 
+cube_color_options = [(random.random()*255, random.random()*255, random.random()*255,100) for _ in range(100)]
+
+# cube_color_options = [
+#     (255,255,255,1),
+#     (255,0,0,1),
+#     (0,255,0,1)
+# ]
+
+
 
 
 x, y, z = -1.2601932287216187, -7.956546783447266, -2.617464065551758
+
+class CubeWithOpaqueFaces(gl.GLMeshItem):
+    def __init__(self, size=1, color=(1, 1, 1, 1)):
+        # Define the cube vertices
+        vertices = np.array([
+            [-0.5, -0.5, -0.5],
+            [0.5, -0.5, -0.5],
+            [0.5, 0.5, -0.5],
+            [-0.5, 0.5, -0.5],
+            [-0.5, -0.5, 0.5],
+            [0.5, -0.5, 0.5],
+            [0.5, 0.5, 0.5],
+            [-0.5, 0.5, 0.5]
+        ]) * size
+        
+        # Define the cube faces
+        faces = np.array([
+            [0, 1, 2, 3],  # Front face
+            [4, 5, 6, 7],  # Back face
+            [0, 1, 5, 4],  # Bottom face
+            [2, 3, 7, 6],  # Top face
+            [0, 3, 7, 4],  # Left face
+            [1, 2, 6, 5]   # Right face
+        ])
+        
+        # Create the GLMeshItem
+        super().__init__(vertexes=vertices, faces=faces, color=color, drawEdges=True, drawFaces=True)
+
+    def color(self, rgba):
+        self.color = rgba
+
 
 
 class CustomGLViewWidget(gl.GLViewWidget):
@@ -43,6 +83,12 @@ class CustomGLViewWidget(gl.GLViewWidget):
         if event.key() == QtCore.Qt.Key.Key_Q:  # The Q key
             # Clean up and quit the application
             QtCore.QCoreApplication.quit()
+        if event.key() == QtCore.Qt.Key.Key_R:
+            self.setBackgroundColor((255,0,0,1))
+        if event.key() == QtCore.Qt.Key.Key_W:
+            self.setBackgroundColor((255,255,255,1))
+        if event.key() == QtCore.Qt.Key.Key_B:
+            self.setBackgroundColor((0,0,0,1))
         else:
             super().keyPressEvent(event)
 
@@ -52,6 +98,7 @@ class CustomGLViewWidget(gl.GLViewWidget):
         print(f"camera position: {pos}")
 
         return super().mouseMoveEvent(ev)
+    
 
 
 class AudioVisualizer(object):
@@ -87,6 +134,11 @@ class AudioVisualizer(object):
         self.window.setCameraPosition(distance=5, elevation=90, azimuth=90)
         self.window.show()
 
+        # self.window2  = CustomGLViewWidget()
+        # self.window2.setWindowTitle('Interface')
+        # self.window2.setGeometry(0, 110, 1920, 1080)
+        # self.window2.show()
+
         self.window.setBackgroundColor(self.bg_color)
 
         # Mesh Configuration
@@ -95,7 +147,21 @@ class AudioVisualizer(object):
         self.z = np.array([0 for _ in range(self.CHUNK)])
         self.verts = np.vstack([self.x,self.y,self.z]).transpose()
         self.plot = gl.GLLinePlotItem(pos=self.verts, color=self.line_color, width=5, antialias=False)
-        self.window.addItem(self.plot)
+        # self.window.addItem(self.plot)
+
+            # Create a cube
+        self.cube = gl.GLBoxItem(glOptions='opaque', color=(200,100,100,70))
+        # self.cube.setGLOptions({
+        #     "drawFaces": True,
+        #     "color": (1.,.5,.5,1.)
+        # })
+        self.cube.setSize(10, 10, 10)
+        self.cube.translate(0, 0, 0)
+        self.window.addItem(self.cube)
+        print(self.verts)
+
+        # cube = CubeWithOpaqueFaces(size=1, color=(random.random(), random.random(), random.random(), 1))
+        self.window.addItem(self.cube)
 
     def update(self):
         start_time = time.time()
@@ -117,20 +183,53 @@ class AudioVisualizer(object):
         # print(f"data calculation: {end_time - start_time} seconds")
         self.y = wf_data_full
         self.verts = np.vstack([self.x,self.y,self.z]).transpose()
-        self.plot.setData(pos=self.verts)
+        # self.plot.setData(pos=self.verts)
+
+        self.cube.translate(0,0,0)
+
+        # Scale the cube based on the audio magnitude
+        magnitude = np.mean(np.abs(self.y)) * 5 + 5
+        self.cube.setSize(magnitude, magnitude, magnitude)
+
+        translate_factor = magnitude / 2
+
+        self.cube.translate(0,0,0)
+        self.cube.translate(-translate_factor, -translate_factor, -translate_factor)
+
+        # Rotate the cube in random 3D directions
+        rotation_angle_x = random.uniform(0, 2)
+        rotation_angle_y = random.uniform(0, 2)
+        rotation_angle_z = random.uniform(0, 2)
+        self.cube.rotate(rotation_angle_x, 1, 0, 0)
+        self.cube.rotate(rotation_angle_y, 0, 1, 0)
+        self.cube.rotate(rotation_angle_z, 0, 0, 1)
+
+        self.cube.translate(translate_factor, translate_factor, translate_factor)
+
+
 
         end_time = time.time()
-        print(f"Frame time: {end_time - start_time} seconds")
+        # print(f"Frame time: {end_time - start_time} seconds")
 
     def invert_colors(self):
-        if self.line_state < len(color_options) - 1:
+        if self.line_state < len(cube_color_options) - 1:
             self.line_state += 1
-            self.line_color = color_options[self.line_state]
+            self.line_color = cube_color_options[self.line_state]
         else:
             self.line_state = 0
-            self.line_color = color_options[self.line_state]
+            self.line_color = cube_color_options[self.line_state]
 
-        self.plot.color = self.line_color
+        # self.plot.color = self.line_color
+
+        self.cube.setColor(self.line_color)
+        # self.window.setBackgroundColor(tuple(map(lambda i: 255 - i, self.line_color)))
+        # if self.inverted:
+        #     self.window.setBackgroundColor((0,0,0,255))
+
+        #     self.inverted = False
+        # else:
+        #     self.window.setBackgroundColor((255,255,255,255))
+        #     self.inverted = True
 
     def animation(self):
         timer = QtCore.QTimer()
