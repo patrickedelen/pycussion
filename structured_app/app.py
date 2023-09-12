@@ -101,7 +101,7 @@ def visuals_render_loop(magnitude, onset_triggered, shared_memory, magnitude_mid
             visuals.close()
             exit(0)
 
-        visuals.render(magnitude=magnitude.value, magnitude_mid=magnitude_mid.value, switch=switch.value, visuals_state=visuals_state)
+        visuals.render(magnitude=magnitude.value, magnitude_mid=magnitude_mid.value, switch=switch.value, visuals_state=visuals_state, second_buffer=shared_memory)
     # if random.random() < 0.05:
         # print('got magnitude', magnitude.value)
         time.sleep(0.0016)
@@ -150,17 +150,17 @@ if __name__ == '__main__':
         'background': 'squares'
     })
 
-    # t1 = Process(target=audio_check_loop, args=(magnitude, onset_triggered, shared_memory, magnitude_mid, close))
+    t1 = Process(target=audio_check_loop, args=(magnitude, onset_triggered, shared_memory, magnitude_mid, close))
     t2 = Process(target=controller_render_loop, args=(magnitude, onset_triggered, shared_memory, magnitude_mid, switch, close, visuals_state))
     t3 = Process(target=visuals_render_loop, args=(magnitude, onset_triggered, shared_memory, magnitude_mid, switch, close, visuals_state))
-    # light_process = Process(target=lighting_render_loop, args=(magnitude, onset_triggered, shared_memory, magnitude_mid, switch, close))
+    light_process = Process(target=lighting_render_loop, args=(magnitude, onset_triggered, shared_memory, magnitude_mid, switch, close))
 
-    # t1.start()
+    t1.start()
     t2.start()
     t3.start()
     # light_process.start()
 
-    # t1.join()
+    t1.join()
     t2.join()
     t3.join()
     # light_process.join()

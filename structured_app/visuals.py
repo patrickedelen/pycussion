@@ -20,6 +20,7 @@ import numpy as np
 from collections import deque
 
 from cube import CubeRenderer
+from scenes import SceneRenderer
 
 CUBE_STATES = [
     'regular',
@@ -60,6 +61,12 @@ light_position = [0.0, -10.0, 0.0, 1.0]  # Position at the bottom
 light_2_position = [0.0, 10.0, 0.0, 1.0]  # Position at the top
 light_diffuse = [1.0, 1.0, 1.0, 1.0]  # White light
 
+class Triangle:
+    def __init__(self, vertices, direction):
+        self.vertices = vertices  # A 3x2 numpy array containing triangle vertices
+        self.direction = direction  # A 2-element numpy array containing x and y direction
+
+
 class Visuals():
     def __init__(self):
         self.cur_rotate = 1
@@ -98,7 +105,8 @@ class Visuals():
         self.squares = []
         self.updates = 0
 
-        self.triangle_verts = np.array([[400, 100], [100, 700], [700, 700]])
+        # self.triangle_verts = np.array([[400, 100], [100, 700], [700, 700]])
+        self.triangle_verts = np.array([[0, -0.5], [-0.5, 0.5], [0.5, 0.5]])
 
         self.num_circles = 50
         self.points = np.random.rand(self.num_circles, 2) * 10 - 5 # 2D random points in 5x5 space
@@ -115,50 +123,49 @@ class Visuals():
 
 
         self.cr = CubeRenderer()
+        self.sr = SceneRenderer()
 
+        self.triangles = []
 
-    def render_particle_bg(self, magnitude):
-        # Set material properties
-        material_diffuse = [1.0, 1.0, 1.0, 1.0]  # White material
-        material_specular = [1.0, 1.0, 1.0, 1.0]  # No specular reflection
-        material_shininess = [50.0]  # No shininess
+    def render_triangle_bg(self, magnitude):
+        # Parameters for triangle generation
+        triangle_base_size = 0.5
+        
+        # Generate triangles
+        if magnitude > 0.25 and random.random() > 0.5:
+            # Generate triangle vertices around the center with some random offset
+            offset = (np.random.rand(3, 2) - 0.5) * triangle_base_size
+            triangle_verts = self.triangle_verts + offset
 
-        glMaterialfv(GL_FRONT, GL_DIFFUSE, material_diffuse)
-        glMaterialfv(GL_FRONT, GL_SPECULAR, material_specular)
-        glMaterialfv(GL_FRONT, GL_SHININESS, material_shininess)
-
+            # Assign random direction for triangle movement
+            direction = (np.random.rand(2) - 0.5) * 0.3  # Random direction in x and y
+            self.triangles.append(Triangle(triangle_verts, direction))
+            
+        # Update triangle positions and remove triangles out of viewport
+        new_triangles = []
+        for triangle in self.triangles:
+            triangle.vertices += triangle.direction * (magnitude * 0.5 + 0.25)
+            # Check if triangle is still in viewport (assuming viewport size is 10x10 units)
+            if np.any(triangle.vertices[:, 0] > 10) or np.any(triangle.vertices[:, 0] < -10) or \
+            np.any(triangle.vertices[:, 1] > 10) or np.any(triangle.vertices[:, 1] < -10):
+                continue
+            new_triangles.append(triangle)
+        self.triangles = new_triangles
+        
+        # Render triangles
         glPushMatrix()
-
-        # Set light properties
-        glLightfv(GL_LIGHT0, GL_POSITION, light_position)
-        glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse)
-
-        glLightfv(GL_LIGHT1, GL_POSITION, light_2_position)
-        glLightfv(GL_LIGHT1, GL_DIFFUSE, light_diffuse)
-
-
-
-        # Draw the particles
-        glColor3f(0.6,0.6,0.6)
-        glPointSize(5)
-        glBegin(GL_POINTS)
-        for particle in self.particles:
-            glVertex3fv(particle)
-        glEnd()
-
-        # Update the particle positions to move down the screen
-        particle_speed_factor = 0.01 + (magnitude - 0.5) * 0.5
-        for particle in self.particles:
-            particle[1] -= particle_speed_factor
-            if particle[1] < -10 or particle[1] > 10:
-                particle[1] = random.uniform(-10, 10)
-
-
+        glDisable(GL_LIGHTING)
+        glLineWidth(4)
+        for triangle in self.triangles:
+            glBegin(GL_LINE_LOOP)
+            glColor3f(0.3, 0.3, 0.3)  # Triangle color
+            for vertex in triangle.vertices:
+                glVertex3f(vertex[0], vertex[1], 0)
+            glEnd()
         glPopMatrix()
 
+
     def render_square_bg(self, magnitude):
-
-
         
         glPushMatrix()
         
@@ -239,6 +246,45 @@ class Visuals():
         
         glPopMatrix()
 
+    def render_particle_bg(self, magnitude):
+        # Set material properties
+        material_diffuse = [1.0, 1.0, 1.0, 1.0]  # White material
+        material_specular = [1.0, 1.0, 1.0, 1.0]  # No specular reflection
+        material_shininess = [50.0]  # No shininess
+
+        glMaterialfv(GL_FRONT, GL_DIFFUSE, material_diffuse)
+        glMaterialfv(GL_FRONT, GL_SPECULAR, material_specular)
+        glMaterialfv(GL_FRONT, GL_SHININESS, material_shininess)
+
+        glPushMatrix()
+
+        # Set light properties
+        glLightfv(GL_LIGHT0, GL_POSITION, light_position)
+        glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse)
+
+        glLightfv(GL_LIGHT1, GL_POSITION, light_2_position)
+        glLightfv(GL_LIGHT1, GL_DIFFUSE, light_diffuse)
+
+
+
+        # Draw the particles
+        glColor3f(0.6,0.6,0.6)
+        glPointSize(5)
+        glBegin(GL_POINTS)
+        for particle in self.particles:
+            glVertex3fv(particle)
+        glEnd()
+
+        # Update the particle positions to move down the screen
+        particle_speed_factor = 0.01 + (magnitude - 0.5) * 0.5
+        for particle in self.particles:
+            particle[1] -= particle_speed_factor
+            if particle[1] < -10 or particle[1] > 10:
+                particle[1] = random.uniform(-10, 10)
+
+
+        glPopMatrix()
+
     def render_circles(self, magnitude=0, onset_triggered=False, shared_memory=[]):
         
         self.circles += self.speeds
@@ -287,47 +333,48 @@ class Visuals():
             glVertex2f(x + dx, y + dy)
         glEnd()
 
-    # def render_waveform(self, magnitude, shared_memory):
-    #     # Assuming shared_memory is still used to get the waveform data
-    #     waveform_data = np.frombuffer(shared_memory.get_obj(), dtype=np.float32)
+    def render_waveform(self, magnitude, second_buffer):
+        # Assuming shared_memory is still used to get the waveform data
+        waveform_data = np.frombuffer(second_buffer.get_obj(), dtype=np.float32)
 
-    #     material_diffuse = [1.0, 1.0, 1.0, 1.0]  # White material
-    #     material_specular = [1.0, 1.0, 1.0, 1.0]  # No specular reflection
-    #     material_shininess = [50.0]  # No shininess
+        material_diffuse = [1.0, 1.0, 1.0, 1.0]  # White material
+        material_specular = [1.0, 1.0, 1.0, 1.0]  # No specular reflection
+        material_shininess = [50.0]  # No shininess
 
-    #     glMaterialfv(GL_FRONT, GL_DIFFUSE, material_diffuse)
-    #     glMaterialfv(GL_FRONT, GL_SPECULAR, material_specular)
-    #     glMaterialfv(GL_FRONT, GL_SHININESS, material_shininess)
+        glMaterialfv(GL_FRONT, GL_DIFFUSE, material_diffuse)
+        glMaterialfv(GL_FRONT, GL_SPECULAR, material_specular)
+        glMaterialfv(GL_FRONT, GL_SHININESS, material_shininess)
 
-    #     glPushMatrix()
-    #     glDisable(GL_LIGHTING)
+        glPushMatrix()
+        glDisable(GL_LIGHTING)
 
-    #     # self.cur_rotate = (self.cur_rotate + 1) % 1440
-    #     # glRotatef(self.cur_rotate / 4, 1, 1, 1)
+        # self.cur_rotate = (self.cur_rotate + 1) % 1440
+        # glRotatef(self.cur_rotate / 4, 1, 1, 1)
 
-    #     glColor3f(0.3, 0.3, 0.3)
+        glColor3f(0.3, 0.3, 0.3)
 
-    #     # Draw the waveform
-    #     glBegin(GL_LINE_STRIP)
+        # Draw the waveform
+        glLineWidth(3)
+        glBegin(GL_LINE_STRIP)
 
-    #     # print('cur magnitude', magnitude)
+        # print('cur magnitude', magnitude)
 
-    #     # We'll skip some data points for performance and clarity in visualization
-    #     skip = len(waveform_data) // 512
+        # We'll skip some data points for performance and clarity in visualization
+        skip = len(waveform_data) // 512
 
-    #     magnitude = min(max(self.avg.average() * 40, 1), 2)
+        # magnitude = min(max(self.avg.average() * 40, 1), 2)
 
-    #     for i in range(0, len(waveform_data), skip):
-    #         x_val = ((i / len(waveform_data) - 0.5) * 10) * magnitude
-    #         y_val = (((waveform_data[i] - 0.5) * 5) + 2.5) * magnitude
-    #         glVertex2f(x_val, y_val)
+        for i in range(0, len(waveform_data), skip):
+            x_val = ((i / len(waveform_data) - 0.5) * 15)
+            y_val = (((waveform_data[i] - 0.5) * 8) + 4)
+            glVertex2f(x_val, y_val)
 
-    #     glEnd()
+        glEnd()
 
-    #     glPopMatrix()
+        glPopMatrix()
 
 
-    def render(self, magnitude=0.5, magnitude_mid=0.5, switch=False, visuals_state={'cube': 'regular', 'background': 'squares'}):
+    def render(self, magnitude=0.5, magnitude_mid=0.5, switch=False, visuals_state={'cube': 'regular', 'background': 'squares'}, second_buffer=None):
         # print('got visuals render request')
 
         for event in pygame.event.get():
@@ -360,13 +407,20 @@ class Visuals():
             case 'glitchy':
                 self.cr.render_glitchy_cube(magnitude=magnitude)
 
-        match background_state:
-            case 'squares':
-                self.render_square_bg(magnitude=magnitude_mid)
-            case 'particles':
-                self.render_particle_bg(magnitude=magnitude_mid)
-            case 'circles':
-                self.render_circles(magnitude=magnitude_mid)
+        self.render_triangle_bg(magnitude=magnitude)
+
+        # match background_state:
+        #     case 'squares':
+        #         self.render_square_bg(magnitude=magnitude_mid)
+        #     case 'particles':
+        #         self.render_particle_bg(magnitude=magnitude_mid)
+        #     case 'circles':
+        #         self.render_circles(magnitude=magnitude_mid)
+        #     case 'waveform':
+        #         self.render_waveform(magnitude=magnitude, second_buffer=second_buffer)
+
+        # self.sr.render_plane(magnitude=magnitude, onset_triggered=False, second_buffer=second_buffer)
+        
 
 
         # if switch:

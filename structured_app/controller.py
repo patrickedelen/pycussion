@@ -52,7 +52,9 @@ CUBE_STATES = [
 BACKGROUND_STATES = [
     'squares',
     'particles',
-    'circles'
+    'circles',
+    'waveform',
+    'triangles'
 ]
 
 

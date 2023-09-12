@@ -19,6 +19,8 @@ import numpy as np
 from collections import deque
 import matplotlib.pyplot as plt
 
+from constants import INPUT_DEVICE_INDEX
+
 
 class Averager:
     def __init__(self, size):
@@ -105,7 +107,7 @@ class AudioProcessor:
             channels=1,
             rate=self.RATE,
             input=True,
-            input_device_index=2,
+            input_device_index=1,
             frames_per_buffer=self.CHUNK
         )
 
@@ -158,6 +160,10 @@ class AudioProcessor:
         # # Read audio data
         wf_data = self.stream.read(self.CHUNK, exception_on_overflow=False)
         wf_data_array = np.frombuffer(wf_data, dtype=np.float32)
+
+        # shift over data 1 chunk in array, fill first chunk with new data
+        self.second_data[:-self.CHUNK] = self.second_data[self.CHUNK:]
+        self.second_data[-self.CHUNK:] = wf_data_array
 
         # # Compute FFT and update the plot
         # fft_data = np.fft.fft(wf_data_array)[:self.CHUNK // 2]
