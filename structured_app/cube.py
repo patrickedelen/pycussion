@@ -177,6 +177,8 @@ class CubeRenderer:
         # really 
 
         glDisable(GL_LIGHTING)
+        glEnable(GL_TEXTURE_2D)
+        glBindTexture(GL_TEXTURE_2D, self.texture)
 
 
         scale_factor = magnitude + scale
@@ -216,8 +218,9 @@ class CubeRenderer:
         # Draw the cube
         glColor3f(0.3,0.3,0.3)
         glBegin(GL_QUADS)
-        for face in faces:
-            for vertex in face:
+        for face_index, face in enumerate(faces):
+            for vert_index, vertex in enumerate(face):
+                glTexCoord2f(*tex_coords[face_index][vert_index])  # Set texture coordinate
                 glVertex3fv(vertices[vertex])
         glEnd()
 

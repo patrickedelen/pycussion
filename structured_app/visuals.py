@@ -127,6 +127,58 @@ class Visuals():
 
         self.triangles = []
 
+        self.spacing_start_z = 0
+
+    def render_tunnel_planes(self, magnitude):
+
+        self.spacing_start_z += 0.025
+        if self.spacing_start_z >= 0.5:
+            self.spacing_start_z = 0
+
+        # Define the color
+        grid_color = (0, 0, 0)  # Black
+        plane_color = (0.15, 0.15, 0.15, 0.1)  # Grey
+        
+        # Plane dimensions
+        width, height = 10, 10
+        grid_spacing = 0.5
+        
+        # Define the vertices for the planes
+        left_plane = [(-width/2, -height/2, 10), (-width/2, height/2, 10), (-width/2, height/2, -40), (-width/2, -height/2, -40)]
+        right_plane = [(width/2, -height/2, 10), (width/2, height/2, 10), (width/2, height/2, -40), (width/2, -height/2, -40)]
+        
+        glPushMatrix()
+        glDisable(GL_LIGHTING)
+        glEnable(GL_DEPTH_TEST)
+        
+        # Render the planes with color
+        # glColor3f(*plane_color)
+        glColor4f(*plane_color)
+        for plane in [left_plane, right_plane]:
+            glBegin(GL_QUADS)
+            for vert in plane:
+                glVertex3f(*vert)
+            glEnd()
+        
+        # Draw the grid lines on the planes
+        glColor3f(*grid_color)
+        for plane_index, plane in enumerate([left_plane, right_plane]):
+            offset = 0.02
+            if plane_index == 1:
+                offset = -0.02
+            for y in np.arange(-height/2 + grid_spacing, height/2, grid_spacing):
+                glBegin(GL_LINES)
+                glVertex3f(plane[0][0] + offset, y, 10 + offset)
+                glVertex3f(plane[0][0] + offset, y, -40 + offset)
+                glEnd()
+            for z in np.arange(10, -40 - grid_spacing, -grid_spacing):
+                glBegin(GL_LINES)
+                glVertex3f(plane[0][0] + offset, -height/2, z + offset + self.spacing_start_z)
+                glVertex3f(plane[0][0] + offset, height/2, z + offset + self.spacing_start_z)
+                glEnd()
+        
+        glPopMatrix()
+
     def render_triangle_bg(self, magnitude):
         # Parameters for triangle generation
         triangle_base_size = 0.5
@@ -407,17 +459,21 @@ class Visuals():
             case 'glitchy':
                 self.cr.render_glitchy_cube(magnitude=magnitude)
 
-        self.render_triangle_bg(magnitude=magnitude)
+        
 
-        # match background_state:
-        #     case 'squares':
-        #         self.render_square_bg(magnitude=magnitude_mid)
-        #     case 'particles':
-        #         self.render_particle_bg(magnitude=magnitude_mid)
-        #     case 'circles':
-        #         self.render_circles(magnitude=magnitude_mid)
-        #     case 'waveform':
-        #         self.render_waveform(magnitude=magnitude, second_buffer=second_buffer)
+        match background_state:
+            case 'squares':
+                self.render_square_bg(magnitude=magnitude_mid)
+            case 'particles':
+                self.render_particle_bg(magnitude=magnitude_mid)
+            case 'circles':
+                self.render_circles(magnitude=magnitude_mid)
+            case 'waveform':
+                self.render_waveform(magnitude=magnitude, second_buffer=second_buffer)
+            case 'triangles':
+                self.render_triangle_bg(magnitude=magnitude)
+            case 'tunnel':
+                self.render_tunnel_planes(magnitude=magnitude)
 
         # self.sr.render_plane(magnitude=magnitude, onset_triggered=False, second_buffer=second_buffer)
         

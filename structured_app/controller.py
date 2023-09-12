@@ -54,7 +54,8 @@ BACKGROUND_STATES = [
     'particles',
     'circles',
     'waveform',
-    'triangles'
+    'triangles',
+    'tunnel'
 ]
 
 
