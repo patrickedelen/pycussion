@@ -16,7 +16,7 @@ DARK_RED = (200, 0, 0)
 
 # Screen dimensions
 WIDTH = 400
-HEIGHT = 600
+HEIGHT = 800
 
 # Button dimensions and position
 BUTTON_WIDTH = 100
@@ -31,15 +31,25 @@ SWITCH_BG_Y = (200 - BUTTON_HEIGHT) // 2
 SWITCH_CUBE_X = (WIDTH - BUTTON_WIDTH) // 2
 SWITCH_CUBE_Y = (400 - BUTTON_HEIGHT) // 2
 
+CLOSE_X = (WIDTH - BUTTON_WIDTH) // 2
+CLOSE_Y = (600 - BUTTON_HEIGHT) // 2
+
 SWITCH_LIGHTING_X = (WIDTH - BUTTON_WIDTH) // 2
 SWITCH_LIGHTING_Y = (800 - BUTTON_HEIGHT) // 2
 
 
-CLOSE_X = (WIDTH - BUTTON_WIDTH) // 2
-CLOSE_Y = (600 - BUTTON_HEIGHT) // 2
 
 
-WIDTH, HEIGHT = 400, 600
+LIGHT_MODE_X = (WIDTH - BUTTON_WIDTH) // 2
+LIGHT_MODE_Y = (1000 - BUTTON_HEIGHT) // 2
+
+LIGHT_MOVEMENT_X = (WIDTH - BUTTON_WIDTH) // 2
+LIGHT_MOVEMENT_Y = (1200 - BUTTON_HEIGHT) // 2
+
+LIGHT_COLOR_X = (WIDTH - BUTTON_WIDTH) // 2
+LIGHT_COLOR_Y = (1400 - BUTTON_HEIGHT) // 2
+
+WIDTH, HEIGHT = 400, 800
 screen = None
 
 CUBE_STATES = [
@@ -56,6 +66,23 @@ BACKGROUND_STATES = [
     'waveform',
     'triangles',
     'tunnel'
+]
+
+LIGHTING_MODES = [
+    'on',
+    'off',
+    'strobe'
+]
+    
+LIGHTING_MOVEMENTS = [
+    'none',
+    'only_left',
+    'only_right'
+]
+    
+LIGHTING_COLORS = [
+    'white',
+    'red'
 ]
 
 
@@ -100,11 +127,15 @@ class ControllerScreen:
 
         self.close_text = self.font.render('Close', True, WHITE)
 
+        self.light_mode = self.font.render('L-Mode', True, WHITE)
+        self.light_movement = self.font.render('L-Move', True, WHITE)
+        self.light_color = self.font.render('L-Color', True, WHITE)
+
         self.pressed = False
 
         self.closed = False
 
-    def render(self, visuals_state):
+    def render(self, visuals_state, lighting_state):
         for event in self.pygame.event.get():
             if event.type == QUIT:
                 # running = False
@@ -141,6 +172,14 @@ class ControllerScreen:
                     print('switching lighting')
                     self.pressed = not self.pressed
 
+                if LIGHT_MODE_X < mouse[0] < LIGHT_MODE_X + BUTTON_WIDTH and LIGHT_MODE_Y < mouse[1] < LIGHT_MODE_Y + BUTTON_HEIGHT:
+                    print('switching light mode')
+                    cur_mode_index = LIGHTING_MODES.index(lighting_state['mode'])
+                    if cur_mode_index == len(LIGHTING_MODES) - 1:
+                        lighting_state['background'] = LIGHTING_MODES[0]
+                    else:
+                        lighting_state['background'] = LIGHTING_MODES[cur_mode_index + 1]
+
 
         self.screen.fill(WHITE)
         # draw_button(pygame=self.pygame, screen=self.screen, text=self.text, x=BUTTON_X, y=BUTTON_Y)
@@ -156,6 +195,9 @@ class ControllerScreen:
         
         # lighting button
         draw_button(pygame=self.pygame, screen=self.screen, text=self.lighting_text, x=SWITCH_LIGHTING_X, y=SWITCH_LIGHTING_Y)
+
+        # lighting mode
+        draw_button(pygame=self.pygame, screen=self.screen, text=self.light_mode, x=LIGHT_MODE_X, y=LIGHT_MODE_Y)
 
         self.pygame.display.flip()
 

@@ -243,6 +243,8 @@ class CubeRenderer:
 
         glPopMatrix()
 
+        glDisable(GL_TEXTURE_2D)
+
 
     def render_multi_cube(self, magnitude):
         cube_distance = 2.5  # Adjust as necessary for spacing between cubes
@@ -272,3 +274,6 @@ class CubeRenderer:
         glTranslate(self.pos_x, self.pos_y, 0)
         self.render_regular_cube(magnitude=magnitude, rotate=0.3, scale=0.4)
         glPopMatrix()
+
+    def render_quad_cube(self, magnitude):
+        pass

@@ -106,10 +106,10 @@ def visuals_render_loop(magnitude, onset_triggered, shared_memory, magnitude_mid
         # print('got magnitude', magnitude.value)
         time.sleep(0.0016)
 
-def controller_render_loop(magnitude, onset_triggered, shared_memory, magnitude_mid, switch, close, visuals_state):
+def controller_render_loop(magnitude, onset_triggered, shared_memory, magnitude_mid, switch, close, visuals_state, lighting_state):
     controller = ControllerScreen()
     while True:
-        controller.render(visuals_state)
+        controller.render(visuals_state, lighting_state)
         switch.value = controller.switch_pressed()
         close.value = controller.close_pressed()
 
@@ -120,7 +120,7 @@ def controller_render_loop(magnitude, onset_triggered, shared_memory, magnitude_
 
         time.sleep(0.016)
 
-def lighting_render_loop(magnitude, onset_triggered, shared_memory, magnitude_mid, switch, close):
+def lighting_render_loop(magnitude, onset_triggered, shared_memory, magnitude_mid, switch, close, lighting_state):
     lighting = Lighting()
 
     while True:
@@ -129,7 +129,7 @@ def lighting_render_loop(magnitude, onset_triggered, shared_memory, magnitude_mi
             lighting.close()
             exit(0)
 
-        lighting.render(magnitude=magnitude.value, close=close.value, switch=switch.value)
+        lighting.render(magnitude=magnitude.value, close=close.value, switch=switch.value, lighting_state=lighting_state)
         time.sleep(0.05)
 
 
@@ -150,17 +150,23 @@ if __name__ == '__main__':
         'background': 'squares'
     })
 
+    lighting_state = manager.dict({
+        'mode': 'on',
+        'movement': 'ltr',
+        'color': 'white'
+    })
+
     t1 = Process(target=audio_check_loop, args=(magnitude, onset_triggered, shared_memory, magnitude_mid, close))
-    t2 = Process(target=controller_render_loop, args=(magnitude, onset_triggered, shared_memory, magnitude_mid, switch, close, visuals_state))
+    t2 = Process(target=controller_render_loop, args=(magnitude, onset_triggered, shared_memory, magnitude_mid, switch, close, visuals_state, lighting_state))
     t3 = Process(target=visuals_render_loop, args=(magnitude, onset_triggered, shared_memory, magnitude_mid, switch, close, visuals_state))
-    light_process = Process(target=lighting_render_loop, args=(magnitude, onset_triggered, shared_memory, magnitude_mid, switch, close))
+    light_process = Process(target=lighting_render_loop, args=(magnitude, onset_triggered, shared_memory, magnitude_mid, switch, close, lighting_state))
 
     t1.start()
     t2.start()
-    t3.start()
-    # light_process.start()
+    # t3.start()
+    light_process.start()
 
     t1.join()
     t2.join()
-    t3.join()
-    # light_process.join()
+    # t3.join()
+    light_process.join()
