@@ -186,11 +186,11 @@ class AudioProcessor:
 
 
 
-        if random.random() < 0.05:
-            print("-----------------")
-            print("Low:", scaled_low)
-            print("Mid:", scaled_mid)
-            print("High:", scaled_high)
+        # if random.random() < 0.05:
+        #     print("-----------------")
+            # print("Low:", scaled_low)
+            # print("Mid:", scaled_mid)
+            # print("High:", scaled_high)
 
 
         self.magnitude_averager.add(scaled_low)

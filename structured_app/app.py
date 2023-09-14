@@ -53,6 +53,7 @@ from collections import deque
 from audio_processing import AudioProcessor
 from controller import ControllerScreen
 from visuals import Visuals
+from launchpad import LaunchPadController
 from lighting import Lighting
 
 
@@ -132,6 +133,11 @@ def lighting_render_loop(magnitude, onset_triggered, shared_memory, magnitude_mi
         lighting.render(magnitude=magnitude.value, close=close.value, switch=switch.value)
         time.sleep(0.05)
 
+def launchpad_controller_loop(visuals_state):
+    controller = LaunchPadController(visuals_state)
+    controller.run()
+    time.sleep(0.1)
+
 
 if __name__ == '__main__':
     magnitude = Value('d', 0.0)
@@ -153,14 +159,18 @@ if __name__ == '__main__':
     t1 = Process(target=audio_check_loop, args=(magnitude, onset_triggered, shared_memory, magnitude_mid, close))
     t2 = Process(target=controller_render_loop, args=(magnitude, onset_triggered, shared_memory, magnitude_mid, switch, close, visuals_state))
     t3 = Process(target=visuals_render_loop, args=(magnitude, onset_triggered, shared_memory, magnitude_mid, switch, close, visuals_state))
+    t4 = Process(target=launchpad_controller_loop, args=(visuals_state,))
+
     light_process = Process(target=lighting_render_loop, args=(magnitude, onset_triggered, shared_memory, magnitude_mid, switch, close))
 
     t1.start()
     t2.start()
     t3.start()
+    t4.start()
     # light_process.start()
 
     t1.join()
     t2.join()
     t3.join()
+    t4.join()
     # light_process.join()
