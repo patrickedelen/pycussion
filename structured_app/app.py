@@ -146,7 +146,7 @@ if __name__ == '__main__':
 
     manager = mp.Manager()
     visuals_state = manager.dict({
-        'cube': 'regular',
+        'cube': 'moving',
         'background': 'squares'
     })
 
@@ -163,10 +163,10 @@ if __name__ == '__main__':
 
     t1.start()
     t2.start()
-    # t3.start()
-    light_process.start()
+    t3.start()
+    # light_process.start()
 
     t1.join()
     t2.join()
-    # t3.join()
-    light_process.join()
+    t3.join()
+    # light_process.join()

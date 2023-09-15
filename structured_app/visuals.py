@@ -454,8 +454,8 @@ class Visuals():
                 self.cr.render_regular_cube(magnitude=magnitude)
             case 'multi':
                 self.cr.render_multi_cube(magnitude=magnitude)
-            case 'random':
-                self.cr.render_random_cube(magnitude=magnitude)
+            case 'moving':
+                self.cr.render_moving_cube(magnitude=magnitude)
             case 'glitchy':
                 self.cr.render_glitchy_cube(magnitude=magnitude)
 

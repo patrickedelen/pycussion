@@ -107,7 +107,7 @@ class AudioProcessor:
             channels=1,
             rate=self.RATE,
             input=True,
-            input_device_index=1,
+            input_device_index=3,
             frames_per_buffer=self.CHUNK
         )
 

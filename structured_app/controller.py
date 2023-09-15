@@ -55,7 +55,7 @@ screen = None
 CUBE_STATES = [
     'regular',
     'multi',
-    'random',
+    'moving',
     'glitchy'
 ]
 
