@@ -18,18 +18,48 @@ class LaunchPadController:
         self.button_to_cube_state = {
             81: 'regular',
             82: 'multi',
-            83: 'random',
+            83: 'moving',
             84: 'glitchy'
         }
         self.button_to_background_state = {
-            41: 'squares',
-            42: 'particles',
-            43: 'circles',
-            44: 'waveform',
-            31: 'triangles',
-            32: 'tunnel'
-
+            71: 'squares',
+            72: 'particles',
+            73: 'circles',
+            74: 'waveform',
+            61: 'triangles',
+            62: 'tunnel'
         }
+
+        self.button_to_lighting_mode = {
+            51: 'on',
+            52: 'off',
+            53: 'strobe',
+            54: 'wash'
+        }
+
+        self.button_to_lighting_movement = {
+            41: 'all',
+            42: 'left',
+            43: 'right',
+            44: 'front',
+            31: 'ltr',
+            32: 'rtl',
+            33: 'ftb',
+            34: 'btf'
+        }
+        self.button_to_lighting_color = {
+            21: 'white',
+            22: 'red',
+            23: 'green',
+            24: 'blue'
+        }
+        self.button_to_lighting_speed = {
+            11: 'slow',
+            12: 'med',
+            13: 'fast',
+            14: 'vfast'
+        }
+
         self.lp.LedSetLayout(0x05)
         self.initialize_buttons()
 
@@ -50,14 +80,28 @@ class LaunchPadController:
             self.lp.LedCtrlRaw(button, 0, 63, 0)
             self.visuals_state['background'] = self.button_to_background_state[button]
             print(f'swithcing visual state to: {self.button_to_background_state[button]}')
-        
+        if button in self.button_to_lighting_mode:
+            self.lp.LedCtrlRaw(button, 0, 63, 0)
+            self.visuals_state['mode'] = self.button_to_lighting_mode[button]
+            print(f'swithcing visual state to: {self.button_to_lighting_mode[button]}')
+        if button in self.button_to_lighting_movement:
+            self.lp.LedCtrlRaw(button, 0, 63, 0)
+            self.visuals_state['movement'] = self.button_to_lighting_movement[button]
+            print(f'swithcing visual state to: {self.button_to_lighting_movement[button]}')
+        if button in self.button_to_lighting_color:
+            self.lp.LedCtrlRaw(button, 0, 63, 0)
+            self.visuals_state['color'] = self.button_to_lighting_color[button]
+            print(f'swithcing visual state to: {self.button_to_lighting_color[button]}')
+        if button in self.button_to_lighting_speed:
+            self.lp.LedCtrlRaw(button, 0, 63, 0)
+            self.visuals_state['speed'] = self.button_to_lighting_speed[button]
+            print(f'swithcing visual state to: {self.button_to_lighting_speed[button]}')
 
     def listen(self):
-        while True:
-            buts = self.lp.ButtonStateRaw()
-            if buts:
-                button = buts[0]
-                self.button_pressed(button)
+        buts = self.lp.ButtonStateRaw()
+        if buts:
+            button = buts[0]
+            self.button_pressed(button)
 
     def run(self):
         self.listen()

@@ -89,13 +89,18 @@ class CubeRenderer:
         self.cur_rotate = 0.0
 
         self.trigger_time = time.time() - 10
-        self.pos_x = 5
-        self.pos_y = 5
+        self.pos_x = 0
+        self.pos_y = 0
         self.rot_x = np.random.rand()
         self.rot_y = np.random.rand()
         self.rot_z = np.random.rand()
 
+        self.vel_x = (random.random() - 0.5) * 0.025
+        self.vel_y = (random.random() - 0.5) * 0.025
+
         self.texture = self.load_texture("assets/cube_text.jpg")
+
+        self.cur_cube_state = None
 
 
     def load_texture(self, filename):
@@ -174,7 +179,8 @@ class CubeRenderer:
         glDisable(GL_TEXTURE_2D)
 
     def render_glitchy_cube(self, magnitude, rotate=0.001, scale=0.75):
-        # really 
+        if self.cur_cube_state != 'glitchy':
+            self.cur_cube_state = 'glitchy'
 
         glDisable(GL_LIGHTING)
         glEnable(GL_TEXTURE_2D)
@@ -243,8 +249,13 @@ class CubeRenderer:
 
         glPopMatrix()
 
+        glDisable(GL_TEXTURE_2D)
+
 
     def render_multi_cube(self, magnitude):
+        if self.cur_cube_state != 'multi':
+            self.cur_cube_state = 'multi'
+
         cube_distance = 2.5  # Adjust as necessary for spacing between cubes
         
         # Loop over 2 rows
@@ -260,6 +271,9 @@ class CubeRenderer:
                 glPopMatrix()
 
     def render_random_cube(self, magnitude):
+        if self.cur_cube_state != 'random':
+            self.cur_cube_state = 'random'
+
         cur_time = time.time()
 
         if cur_time - self.trigger_time >= 1:
@@ -272,3 +286,30 @@ class CubeRenderer:
         glTranslate(self.pos_x, self.pos_y, 0)
         self.render_regular_cube(magnitude=magnitude, rotate=0.3, scale=0.4)
         glPopMatrix()
+    
+    def render_moving_cube(self, magnitude):
+
+        if self.cur_cube_state != 'moving':
+            self.vel_x = (random.random() - 0.5) * 0.025
+            self.vel_y = (random.random() - 0.5) * 0.025
+            self.cur_cube_state = 'moving'
+
+
+        self.pos_x += self.vel_x
+        self.pos_y += self.vel_y
+
+        if self.pos_x <= -5 or self.pos_x >= 5:
+            self.vel_x = -self.vel_x
+            self.pos_x += self.vel_x
+
+        if self.pos_y <= -3 or self.pos_y >= 3:
+            self.vel_y = -self.vel_y
+            self.pos_y += self.vel_y
+        
+        glPushMatrix()
+        glTranslate(self.pos_x, self.pos_y, 0)
+        self.render_regular_cube(magnitude=magnitude, rotate=0.3, scale=0.4)
+        glPopMatrix()
+
+    def render_quad_cube(self, magnitude):
+        pass

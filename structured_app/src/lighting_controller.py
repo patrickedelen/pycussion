@@ -65,6 +65,9 @@ class DMXUniverse:
             int_val = map_to(val, min, max)
             self[start_chan + chan_no - 1] = int_val
 
+    def set_int(self, start_chan, chan_no, val):
+        self[start_chan + chan_no - 1] = val
+
     def add_device(self, device):
         # Check for partial channel overlaps between devices, which
         # are probably an error
@@ -127,28 +130,106 @@ class DMXDevice:
 
     def update(self, dmx):
         raise NotImplementedError
-    
+
+
 
 class RGB36(DMXDevice):
-    """
-    RGB fixture with 36 LEDs, 6 channels
-    CH1: total dimming
-    CH2: R 0-255
-    CH3: G 0-255
-    CH4: B 0-255
-    CH5: strobe speed (0-255)
-    CH6: color change speed (0-255)
-    """
-
     def __init__(self, name, chan_no):
         super().__init__(name, chan_no, num_chans=8)
-        self.dimming = 1
+        self.dimming = 250
+        self._rgb = np.array([0, 0, 0])
+        self.target_rgb = np.array([0, 0, 0])
+        self.start_rgb = np.array([0, 0, 0])
+        self.transition_start_time = None
+        self.strobe = 0
+        self.anim_speed = 0
+        self.should_strobe = False
+        self.transition_speed = 100
+
+    @property
+    def rgb(self):
+        return self._rgb
+
+    @rgb.setter
+    def rgb(self, value):
+        self.start_rgb = self._rgb
+        self.target_rgb = np.array(value)
+        self.transition_start_time = time.time()
+
+    def interpolate_rgb(self):
+        if self.transition_start_time is None:
+            return self._rgb
+        
+        elapsed = (time.time() - self.transition_start_time) * 1000  # time in ms
+        if elapsed >= self.transition_speed:
+            self._rgb = self.target_rgb
+            self.transition_start_time = None  # End the transition
+        else:
+            t = elapsed / self.transition_speed  # Percentage of transition completed
+            self._rgb = (1 - t) * self.start_rgb + t * self.target_rgb
+        
+        return self._rgb
+
+    def update(self, dmx):
+        current_rgb = self.interpolate_rgb()
+        
+        dmx.set_int(self.chan_no, 1, self.dimming)
+        dmx.set_float(self.chan_no, 2, current_rgb)
+
+        if self.should_strobe:
+            dmx.set_int(self.chan_no, 5, 25)
+        else:
+            dmx.set_int(self.chan_no, 5, 1)
+
+
+
+# class RGB36(DMXDevice):
+#     """
+#     RGB fixture with 36 LEDs, 6 channels
+#     CH1: total dimming
+#     CH2: R 0-255
+#     CH3: G 0-255
+#     CH4: B 0-255
+#     CH5: strobe speed (0-255)
+#     CH6: color change speed (0-255)
+#     """
+
+#     def __init__(self, name, chan_no):
+#         super().__init__(name, chan_no, num_chans=8)
+#         self.dimming = 1
+#         self.rgb = np.array([0, 0, 0])
+#         self.strobe = 0
+#         self.anim_speed = 0
+
+#         self.should_strobe = False
+
+#     def update(self, dmx):
+#         dmx.set_int(self.chan_no, 1, 250)
+#         dmx.set_float(self.chan_no, 2, self.rgb)
+
+#         if self.should_strobe:
+#             dmx.set_int(self.chan_no, 5, 25)
+#         else:
+#             dmx.set_int(self.chan_no, 5, 1)
+#         # dmx.set_int(self.chan_no, 6, 160)
+#         # dmx.set_float(self.chan_no, 7, 0, 0, 255)
+
+class RGB36Mode(DMXDevice):
+    def __init__(self, name, chan_no):
+        super().__init__(name, chan_no, num_chans=8)
+        self.dimming = 250
         self.rgb = np.array([0, 0, 0])
         self.strobe = 0
         self.anim_speed = 0
 
+        self.should_strobe = False
+
     def update(self, dmx):
-        dmx.set_float(self.chan_no, 1, self.dimming)
+        dmx.set_int(self.chan_no, 1, self.dimming)
         dmx.set_float(self.chan_no, 2, self.rgb)
-        dmx.set_float(self.chan_no, 5, self.strobe, 0, 255)
-        dmx.set_float(self.chan_no, 6, self.anim_speed, 0, 255)
+        # dmx.set_float(self.chan_no, 5, self.strobe, 0, 255)
+        if self.should_strobe:
+            dmx.set_int(self.chan_no, 6, 240)
+        else:
+            dmx.set_int(self.chan_no, 6, 0)
+        dmx.set_int(self.chan_no, 7, 0)

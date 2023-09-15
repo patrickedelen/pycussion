@@ -107,10 +107,10 @@ def visuals_render_loop(magnitude, onset_triggered, shared_memory, magnitude_mid
         # print('got magnitude', magnitude.value)
         time.sleep(0.0016)
 
-def controller_render_loop(magnitude, onset_triggered, shared_memory, magnitude_mid, switch, close, visuals_state):
+def controller_render_loop(magnitude, onset_triggered, shared_memory, magnitude_mid, switch, close, visuals_state, lighting_state):
     controller = ControllerScreen()
     while True:
-        controller.render(visuals_state)
+        controller.render(visuals_state, lighting_state)
         switch.value = controller.switch_pressed()
         close.value = controller.close_pressed()
 
@@ -121,7 +121,7 @@ def controller_render_loop(magnitude, onset_triggered, shared_memory, magnitude_
 
         time.sleep(0.016)
 
-def lighting_render_loop(magnitude, onset_triggered, shared_memory, magnitude_mid, switch, close):
+def lighting_render_loop(magnitude, onset_triggered, shared_memory, magnitude_mid, switch, close, lighting_state, visuals_state):
     lighting = Lighting()
 
     while True:
@@ -130,13 +130,17 @@ def lighting_render_loop(magnitude, onset_triggered, shared_memory, magnitude_mi
             lighting.close()
             exit(0)
 
-        lighting.render(magnitude=magnitude.value, close=close.value, switch=switch.value)
+        lighting.render(magnitude=magnitude.value, close=close.value, switch=switch.value, visuals_state=visuals_state)
         time.sleep(0.05)
 
-def launchpad_controller_loop(visuals_state):
+def launchpad_controller_loop(visuals_state, close):
     controller = LaunchPadController(visuals_state)
-    controller.run()
-    time.sleep(0.1)
+    while True:
+        if close.value:
+            print('closing launchpad')
+            exit(0)
+        controller.listen()
+        time.sleep(0.05)
 
 
 if __name__ == '__main__':
@@ -152,25 +156,35 @@ if __name__ == '__main__':
 
     manager = mp.Manager()
     visuals_state = manager.dict({
-        'cube': 'regular',
-        'background': 'squares'
+        'cube': 'moving',
+        'background': 'squares',
+        'mode': 'on',
+        'movement': 'all',
+        'color': 'white',
+        'speed': 'slow'
+    })
+
+    lighting_state = manager.dict({
+        'mode': 'on',
+        'movement': 'ltr',
+        'color': 'white'
     })
 
     t1 = Process(target=audio_check_loop, args=(magnitude, onset_triggered, shared_memory, magnitude_mid, close))
-    t2 = Process(target=controller_render_loop, args=(magnitude, onset_triggered, shared_memory, magnitude_mid, switch, close, visuals_state))
+    t2 = Process(target=controller_render_loop, args=(magnitude, onset_triggered, shared_memory, magnitude_mid, switch, close, visuals_state, lighting_state))
     t3 = Process(target=visuals_render_loop, args=(magnitude, onset_triggered, shared_memory, magnitude_mid, switch, close, visuals_state))
-    t4 = Process(target=launchpad_controller_loop, args=(visuals_state,))
+    t4 = Process(target=launchpad_controller_loop, args=(visuals_state, close))
 
-    light_process = Process(target=lighting_render_loop, args=(magnitude, onset_triggered, shared_memory, magnitude_mid, switch, close))
+    light_process = Process(target=lighting_render_loop, args=(magnitude, onset_triggered, shared_memory, magnitude_mid, switch, close, lighting_state, visuals_state))
 
     t1.start()
     t2.start()
     t3.start()
     t4.start()
-    # light_process.start()
+    light_process.start()
 
     t1.join()
     t2.join()
     t3.join()
     t4.join()
-    # light_process.join()
+    light_process.join()
