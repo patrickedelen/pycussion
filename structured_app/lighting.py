@@ -67,6 +67,8 @@ class Lighting:
         self.wash_rising = False
         self.strobing = False
 
+        self.speed_factor = 1.0
+
 
     def color_active_lights(self):
         for i, active in enumerate(self.active_lights):
@@ -92,7 +94,7 @@ class Lighting:
             self.move_ticks = 0
         
         self.move_ticks += 1
-        if self.move_ticks >= 10:
+        if self.move_ticks >= 10 * self.speed_factor:
             self.move_ticks = 0
             active_light_id = self.active_lights.index(True)
             if active_light_id == len(self.active_lights) - 1:
@@ -115,7 +117,7 @@ class Lighting:
             self.move_ticks = 0
         
         self.move_ticks += 1
-        if self.move_ticks >= 10:
+        if self.move_ticks >= 10 * self.speed_factor:
             self.move_ticks = 0
             active_light_id = self.active_lights.index(True)
             if active_light_id == 0:
@@ -164,7 +166,7 @@ class Lighting:
             self.move_ticks = 0
 
         self.move_ticks += 1
-        if self.move_ticks >= 10:
+        if self.move_ticks >= 10 * self.speed_factor:
             self.move_ticks = 0
             cur_light_idx = self.active_lights.index(True)
 
@@ -176,8 +178,6 @@ class Lighting:
             self.active_lights = [False, False, False, False, False, False]
             self.active_lights[cur_light_idx] = True
             self.active_lights[-(cur_light_idx + 1)] = True
-
-
 
 
     def move_ftb_animation(self):
@@ -192,7 +192,7 @@ class Lighting:
             self.move_ticks = 0
 
         self.move_ticks += 1
-        if self.move_ticks >= 10:
+        if self.move_ticks >= 10 * self.speed_factor:
             self.move_ticks = 0
             cur_light_idx = self.active_lights.index(True)
 
@@ -220,7 +220,7 @@ class Lighting:
                 self.active_lights[0] = True
 
         self.move_ticks += 1
-        if self.move_ticks > 10:
+        if self.move_ticks > 10 * self.speed_factor:
             self.move_ticks = 0
             self.active_lights = [False, False, False, False, False, False]
             random_idx = int(random.random() * len(self.active_lights))
@@ -230,7 +230,6 @@ class Lighting:
                 self.active_lights[0] = True
 
 
-
     def mode_wash(self):
         if self.cur_lighting_mode != 'wash':
             self.cur_lighting_mode = 'wash'
@@ -238,15 +237,22 @@ class Lighting:
             self.active_intensity = 20
         
         if self.wash_rising and self.active_intensity < 250:
-            self.active_intensity += 10
+            self.active_intensity += int(10 * self.speed_factor)
         elif self.wash_rising and self.active_intensity >= 250:
             self.wash_rising = False
-            self.active_intensity -= 10
+            self.active_intensity -= int(10 * self.speed_factor)
         elif not self.wash_rising and self.active_intensity > 20:
-            self.active_intensity -= 10
+            self.active_intensity -= int(10 * self.speed_factor)
         else:
             self.wash_rising = True
-            self.active_intensity += 10
+            self.active_intensity += int(10 * self.speed_factor)
+
+        if self.active_intensity > 255:
+            self.active_intensity = 255
+            self.wash_rising = False
+        if self.active_intensity < 0:
+            self.active_intensity = 0
+            self.wash_rising = True
 
     def mode_strobe(self):
         self.cur_lighting_mode = 'strobing'
@@ -311,14 +317,15 @@ class Lighting:
         mode = visuals_state['mode']
         movement = visuals_state['movement']
         color = visuals_state['color']
+        speed = visuals_state['speed']
 
-        if self.cur_lighting_mode != mode:
-            self.cur_lighting_mode = mode
+        # if self.cur_lighting_mode != mode:
+        #     self.cur_lighting_mode = mode
 
-        if self.cur_move_state != movement:
-            self.cur_move_state = movement
+        # if self.cur_move_state != movement:
+        #     self.cur_move_state = movement
 
-        match self.cur_lighting_mode:
+        match mode:
             case 'on':
                 self.mode_on()
             case 'off':
@@ -328,7 +335,7 @@ class Lighting:
             case 'wash':
                 self.mode_wash()
         
-        match self.cur_move_state:
+        match movement:
             case 'all':
                 self.movement_all_on()
             case 'left':
@@ -355,6 +362,16 @@ class Lighting:
                 self.active_color = np.array([0.1, 1.0, 0.2])
             case 'blue':
                 self.active_color = np.array([0.2, 0.2, 1.0])
+
+        match speed:
+            case 'slow':
+                self.speed_factor = 1.5
+            case 'med':
+                self.speed_factor = 1.0
+            case 'fast':
+                self.speed_factor = 0.5
+            case 'vfast':
+                self.speed_factor = 0.25
 
         self.color_active_lights()
 

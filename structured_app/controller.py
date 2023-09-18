@@ -154,7 +154,9 @@ class ControllerScreen:
                 'circles': 73,
                 'waveform': 74,
                 'triangles': 61,
-                'tunnel': 62
+                'tunnel': 62,
+                'black': 63,
+                'plane': 64
             },
             'mode': {
                 'on': 51,

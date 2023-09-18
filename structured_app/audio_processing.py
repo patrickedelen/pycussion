@@ -95,6 +95,23 @@ def extract_bands(frequencies, magnitudes):
 
 
 
+class BufferNormalizer:
+    def __init__(self):
+        self.max_value = float('-inf')
+        self.min_value = float('inf')
+
+    def normalize(self, data):
+        # Update max and min values
+        self.max_value = max(self.max_value, np.max(data))
+        self.min_value = min(self.min_value, np.min(data))
+
+        # Normalize the data between -1 and 1 based on max/min
+        if self.max_value == self.min_value:
+            return np.zeros_like(data)  # Avoid division by zero
+
+        return 2 * (data - self.min_value) / (self.max_value - self.min_value) - 1
+
+
 
 class AudioProcessor:
     def __init__(self, shared_memory):
@@ -107,7 +124,7 @@ class AudioProcessor:
             channels=1,
             rate=self.RATE,
             input=True,
-            input_device_index=3,
+            input_device_index=2,
             frames_per_buffer=self.CHUNK
         )
 
@@ -135,6 +152,8 @@ class AudioProcessor:
         self.mid_averager = Averager(32)
 
         self.band_averager = BandAverager()
+
+        self.buffer_normalizer = BufferNormalizer()
 
         # Set up the plot
         # self.fig, self.ax = plt.subplots()
@@ -186,11 +205,11 @@ class AudioProcessor:
 
 
 
-        # if random.random() < 0.05:
-        #     print("-----------------")
-            # print("Low:", scaled_low)
-            # print("Mid:", scaled_mid)
-            # print("High:", scaled_high)
+        if random.random() < 0.025:
+            print("-----------------")
+            print("Low:", scaled_low)
+            print("Mid:", scaled_mid)
+            print("High:", scaled_high)
 
 
         self.magnitude_averager.add(scaled_low)

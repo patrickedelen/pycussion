@@ -81,7 +81,8 @@ class Visuals():
         # pygame.FULLSCREEN |
 
         display = (1920, 1080)
-        pygame.display.set_mode(display, DOUBLEBUF | OPENGL)
+        self.screen = pygame.display.set_mode(display, pygame.FULLSCREEN | DOUBLEBUF | OPENGL)
+        self.font = pygame.font.SysFont("monospace", 15)
 
         # Set the perspective for the camera
         gluPerspective(45, (display[0] / display[1]), 0.1, 50.0)
@@ -449,31 +450,36 @@ class Visuals():
         cube_state = visuals_state['cube']
         background_state = visuals_state['background']
 
-        match cube_state:
-            case 'regular':
-                self.cr.render_regular_cube(magnitude=magnitude)
-            case 'multi':
-                self.cr.render_multi_cube(magnitude=magnitude)
-            case 'moving':
-                self.cr.render_moving_cube(magnitude=magnitude)
-            case 'glitchy':
-                self.cr.render_glitchy_cube(magnitude=magnitude)
+        if background_state == 'plane':
+            self.sr.render_plane(magnitude=magnitude, onset_triggered=False, second_buffer=second_buffer)
+        elif background_state == 'black':
+            pass
+        else:
+            match cube_state:
+                case 'regular':
+                    self.cr.render_regular_cube(magnitude=magnitude)
+                case 'multi':
+                    self.cr.render_multi_cube(magnitude=magnitude)
+                case 'moving':
+                    self.cr.render_moving_cube(magnitude=magnitude)
+                case 'glitchy':
+                    self.cr.render_glitchy_cube(magnitude=magnitude)
 
-        
+            
 
-        match background_state:
-            case 'squares':
-                self.render_square_bg(magnitude=magnitude_mid)
-            case 'particles':
-                self.render_particle_bg(magnitude=magnitude_mid)
-            case 'circles':
-                self.render_circles(magnitude=magnitude_mid)
-            case 'waveform':
-                self.render_waveform(magnitude=magnitude, second_buffer=second_buffer)
-            case 'triangles':
-                self.render_triangle_bg(magnitude=magnitude)
-            case 'tunnel':
-                self.render_tunnel_planes(magnitude=magnitude)
+            match background_state:
+                case 'squares':
+                    self.render_square_bg(magnitude=magnitude_mid)
+                case 'particles':
+                    self.render_particle_bg(magnitude=magnitude_mid)
+                case 'circles':
+                    self.render_circles(magnitude=magnitude_mid)
+                case 'waveform':
+                    self.render_waveform(magnitude=magnitude, second_buffer=second_buffer)
+                case 'triangles':
+                    self.render_triangle_bg(magnitude=magnitude)
+                case 'tunnel':
+                    self.render_tunnel_planes(magnitude=magnitude)
 
         # self.sr.render_plane(magnitude=magnitude, onset_triggered=False, second_buffer=second_buffer)
         

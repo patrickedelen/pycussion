@@ -27,7 +27,9 @@ class LaunchPadController:
             73: 'circles',
             74: 'waveform',
             61: 'triangles',
-            62: 'tunnel'
+            62: 'tunnel',
+            63: 'black',
+            64: 'plane'
         }
 
         self.button_to_lighting_mode = {

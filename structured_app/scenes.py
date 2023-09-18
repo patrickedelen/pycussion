@@ -19,10 +19,20 @@ import random
 import numpy as np
 from collections import deque
 
+TEXT_COLOR = (50, 200, 50)
+
+
+
+# Generate random code text
+def generate_random_code():
+    # Here's a simple random code generator. You can enhance this to make it look more like code.
+    chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789{}();"
+    return ''.join(random.choice(chars) for _ in range(random.randint(5, 100)))
 
 class SceneRenderer:
     def __init__(self):
         self.cur_rotate = 0
+        self.texts = []
 
     def render_plane(self, magnitude=0, onset_triggered=False, second_buffer=[]):
 
@@ -72,3 +82,19 @@ class SceneRenderer:
         glEnd()
 
         glPopMatrix()
+
+    def render_code(self, screen, font):
+        if random.random() < 0.2:
+            new_text_surface = font.render(generate_random_code(), True, TEXT_COLOR)
+            self.texts.append([new_text_surface, new_text_surface.get_rect(topleft=(random.randint(0, 50), 0))])
+
+            for text_surface, rect in self.texts:
+                # screen.blit(text_surface, rect.topleft)
+                rect.move_ip(0, 30)  # Move downward by 1 pixel
+        
+        for text_surface, rect in self.texts:
+            screen.blit(text_surface, rect.topleft)
+        # rect.move_ip(0, 20)  # Move downward by 1 pixel
+
+        # Remove texts that are off the screen
+        self.texts = [t for t in self.texts if t[1].top < 1080]
